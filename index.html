@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!--<link rel="manifest" href="manifest.json">
+        <link rel="icon" href="images/icons/icon-512x512.png" type="image/png">
+        <link rel="apple-touch-icon" href="images/icons/icon-192x192.png"> <!-- Apple App icon -->
+        <html lang="de-de">
+        <meta name="theme-color" content="black"/>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <meta name="description" content="Luckyapp ist eine Seite, mit vielen Funktionen, wie einem Rechner, Fastlink, Musik, Luckyassistant, und vielem mehr.">
+        <title>Database</title>
+        <link href="style.css" rel="stylesheet" type="text/css" />
+        <link href="stylesheets/error/error.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <script src="script.js"></script>
+        <script src="stylesheets/error/error.js"></script>
+
+        <header>
+            <h1>Database by Luckyapp</h1>
+        </header>
+
+        <content>
+            <section class="group">
+                <h3>Websocket Controls</h3>
+                <div class="panel">
+                    <h4>Main Controls</h4>
+                    <button onclick="websocket.start()">Verbindung aufbauen</button>
+                    <input id="clientControlMessageInput" value="Testnachricht"></input>
+                    <input id="clientControlCallbackInput" value="Callback"></input>
+                    <button onclick="websocket.send(document.getElementById('clientControlMessageInput').value,document.getElementById('clientControlCallbackInput').value)">Testnachricht senden</button>
+                </div>
+                <div>
+
+                </div>
+            </section>
+            <section class="group">
+                <h3>Hilfsfunktionen</h3>
+                <button onclick="error.show('ERROR');">Error.show()</button>
+                <!--<button onclick="console.log(error)">zeige error</button>-->
+            </section>
+        </content>
+
+        <div id="error_container"></div>
+    </body>
+</html>

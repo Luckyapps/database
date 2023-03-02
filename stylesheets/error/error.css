@@ -1,0 +1,13 @@
+#error_container{
+    position: fixed;
+    left:50%;
+    bottom:10px;
+    transform:translate(-50%,0);
+    background-color: red;
+    border-radius: 10px;
+    text-align: center;
+    padding: 10px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    font-weight: bold;
+}

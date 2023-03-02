@@ -1,0 +1,30 @@
+*{
+    font-family: calibri;
+}
+
+button{
+    cursor:pointer;
+}
+
+section h3{
+    margin-top:0;
+    margin-bottom: 10px;
+}
+
+.panel h4{
+    margin-top:0;
+    margin-bottom: 10px;
+}
+
+.group{
+    background: gray;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.panel{
+    background-color: orange;
+    padding: 10px;
+    border-radius: 10px;
+}

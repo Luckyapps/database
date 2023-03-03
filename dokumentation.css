@@ -1,0 +1,49 @@
+.code{
+    font-family: 'Courier New', Courier, monospace;
+    background-color: wheat;
+    padding:3px;
+    border-radius: 3px;
+    margin: 5px;
+    height: 1em;
+    vertical-align: middle;
+}
+
+p{
+    margin-top:10px;
+    margin-bottom: 10px;
+}
+
+.subpanelContainer{
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.subpanel{
+    padding:10px;
+    border-radius: 10px;
+}
+
+.green{
+    background-color: #7ca142;
+}
+
+.red{
+    background-color: #a14242;
+}
+
+.subpanel h5{
+    margin:0;
+    margin-bottom:10px;
+}
+
+.ParamList{
+    margin-top:0;
+}
+
+.ParamList li{
+    margin-bottom:10px;
+}

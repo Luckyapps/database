@@ -12,6 +12,16 @@
         <title>Database</title>
         <link href="style.css" rel="stylesheet" type="text/css" />
         <link href="stylesheets/error/error.css" rel="stylesheet" type="text/css" />
+        <style>
+            .subpanel{
+                padding:10px;
+                border-radius: 10px;
+            }
+
+            .green{
+                background-color: #7ca142;
+            }
+        </style>
     </head>
     <body>
         <script src="script.js"></script>
@@ -27,9 +37,15 @@
                 <div class="panel">
                     <h4>Main Controls</h4>
                     <button onclick="websocket.start()">Verbindung aufbauen</button>
-                    <input id="clientControlMessageInput" value="Testnachricht"></input>
+                    <input id="clientControlMessageInput" value='{"info":3}'></input>
                     <input id="clientControlCallbackInput" value="Callback"></input>
                     <button onclick="websocket.send(document.getElementById('clientControlMessageInput').value,document.getElementById('clientControlCallbackInput').value)">Testnachricht senden</button>
+                </div>
+                <div class="panel">
+                    <h4>Ausgabefenster</h4>
+                    <div class="subpanel green">
+                        <p id="dataDisplay"></p>
+                    </div>
                 </div>
                 <div>
 
@@ -40,8 +56,13 @@
                 <button onclick="error.show('ERROR');">Error.show()</button>
                 <!--<button onclick="console.log(error)">zeige error</button>-->
             </section>
+            <section class="group">
+                <h3>Dokumentation</h3>
+                <a href="dokumentation.html">Hier gehts zur Dokumentation.</a>
+            </section>
         </content>
 
+        <div id="info_container"></div>
         <div id="error_container"></div>
     </body>
 </html>

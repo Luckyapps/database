@@ -1,0 +1,9 @@
+{
+    "databases": {
+        "db1":{
+            "name":"testdb1",
+            "key":"1234",
+            "data": {}
+        }
+    }
+}

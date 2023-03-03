@@ -17,6 +17,7 @@ websocket = {
 
         socket.onopen = (e)=>{
             console.log("Websocket ready");
+            info.show("Verbindung Hergestellt");
         }
 
         socket.onmessage = (message)=>{
@@ -24,8 +25,9 @@ websocket = {
             this.handleMessage(message);
         }
 
-        socket.onerror = (error)=>{
-            console.error(`Websocket error ${error}`);
+        socket.onerror = (err)=>{
+            console.error(`Websocket error`);
+            error.show("Ein unbekannter Socketerror ist aufgetreten.");
         }
     },
     send(message, callback){ //Eine Nachricht Senden. || Es kann eine Callbackfunktion angegeben werden
@@ -38,6 +40,7 @@ websocket = {
 
         try{
             socket.send(message);
+            info.show("Nachricht gesendet.");
             return true;
         }
         catch(err){
@@ -54,6 +57,9 @@ websocket = {
         }
         catch{
             console.warn("NO Callback");
+            console.log(message);
+            console.log(JSON.parse(message.data));
+            document.getElementById("dataDisplay").innerHTML = message.data;
         }
     },
     prepareMessage(message){//Kann verwendet werden, um eine Nachricht vor dem Senden vorzubereiten.
@@ -81,6 +87,20 @@ websocket = {
 error = {
     loadContainer(){
         this.container = document.getElementById("error_container");
+        return this.container;
+    },
+    show(content){
+        this.loadContainer();
+        this.container.innerHTML = content;
+        this.container.style.opacity = 1;
+            setTimeout(()=>{this.container.style.opacity = 0}, 5000);
+        return true;
+    },
+}
+
+info = {
+    loadContainer(){
+        this.container = document.getElementById("info_container");
         return this.container;
     },
     show(content){

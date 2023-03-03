@@ -34,8 +34,8 @@ function onSocketConnect(ws) {
 
   ws.on('message', function(message) {
     if(bouncer(ws, message) == true){ //security check
-        console_log(message);
-      ws.send(main_script(message));
+        console_log(message, "onSocketConnect", undefined, ws._socket.remoteAddress);
+      ws.send(main_script(message, ws));
     } 
   });
 
@@ -46,8 +46,89 @@ function onSocketConnect(ws) {
 }
 
 
-function main_script(message){
-    return message.toString();
+function main_script(message, ws){
+    try{
+      message = JSON.parse(message);
+      //return JSON.stringify(new ReturnValue("data", message));
+      return inputHandler(message, ws);
+    }
+    catch(err){ //Inputformat ungültig
+      console_log(err,"main_script", "warn", ws._socket.remoteAddress);
+      return JSON.stringify(new ReturnValue("error", err, "Input Error"));
+    }
+}
+
+function inputHandler(input, ws){
+  try{
+    if(input.command){
+      if(input.command == "openDatabase"){
+        if(input.key && input.database_name){
+          return accessDatabase(input, ws);
+        }else{
+          return JSON.stringify(new ReturnValue("error", null, "Nicht genug Argumente angegeben"))
+        }
+      }else{
+        console_log("Ungültiger Befehl: "+ input.command,"inputHandler", "warn", ws._socket.remoteAddress);
+        return JSON.stringify(new ReturnValue("error", undefined, "InputHandler Error: "+"Ungültiger Befehl: "+ input.command,"inputHandler"));
+      }
+    }else{
+      return JSON.stringify(input);
+    }
+  }
+  catch(err){
+    console_log(err,"inputHandler", "warn", ws._socket.remoteAddress);
+    return JSON.stringify(new ReturnValue("error", err, "InputHandler Error"));
+  }
+}
+
+function accessDatabase(input, ws){
+  try{
+    var database = JSON.parse(fs.readFileSync('databases.json')).databases;
+    if(input.key == database[input.database_name].key){
+      console_log("Zugriff auf "+ input.database_name +" mit dem key "+ input.key +" gewährt.", "accessDatabase", undefined, ws._socket.remoteAddress);
+      var returning = database[input.database_name];
+    }else{
+      console_log("User hat erfolglos versucht die Database mit id: "+ input.database_name +" und key: "+ input.key +" zu öffnen","accessDatabase", "warn", ws._socket.remoteAddress);
+      return JSON.stringify(new ReturnValue("error", null, "Key oder id Falsch"));
+    }
+    return JSON.stringify(new ReturnValue("database", returning));
+  }
+  catch(err){
+    console_log(err,"accessDatabase", "warn", ws._socket.remoteAddress);
+    return JSON.stringify(new ReturnValue("error", err, "accessDatabase Error"));
+  }
+}
+
+class ReturnValue{
+  constructor(type, value1, value2){
+    this.type = type;
+    if(type == "error"){
+      if(value1 == null||value1 == undefined){
+        value1 = {name:undefined,message:undefined}
+      }
+      this.data = {
+        error:{
+          name:value1.name,
+          message:value1.message,
+          context: value2
+        }
+      }
+    }else if(type == "data"){
+      this.data = value1;
+    }else if(type == "database"){
+      this.name = value1.name;
+      this.key = value1.key;
+      this.data = value1.data;
+    }
+  }
+}
+
+class Database{
+  constructor(id, key, name){
+    this.name = name;
+    this.key = key;
+    this.id = id;
+  }
 }
 
 

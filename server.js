@@ -67,6 +67,12 @@ function inputHandler(input, ws){
         }else{
           return JSON.stringify(new ReturnValue("error", null, "Nicht genug Argumente angegeben"))
         }
+      }else if(input.command == "createDatabase"){
+        if(input.database_name && input.key && input.id){
+          return createDatabase(input.id, input.key, input.name, input, ws);
+        }else{
+          return JSON.stringify(new ReturnValue("error", null, "Nicht genug Argumente angegeben"))
+        }
       }else{
         console_log("Ungültiger Befehl: "+ input.command,"inputHandler", "warn", ws._socket.remoteAddress);
         return JSON.stringify(new ReturnValue("error", undefined, "InputHandler Error: "+"Ungültiger Befehl: "+ input.command,"inputHandler"));
@@ -99,6 +105,26 @@ function accessDatabase(input, ws){
   }
 }
 
+function createDatabase(id, key, name, input, ws){
+  try{
+    var databases = JSON.parse(fs.readFileSync("databases.json"));
+    for(i=0;i<Object.keys(databases.databases).length;i++){
+      if(Object.keys(databases.databases)[i] == id){
+        console_log("Database mit der Id bereits vorhanden", "createDatabase", "warn", ws._socket.remoteAddress);
+        return JSON.stringify(new ReturnValue("error", undefined, "Database mit der Id bereits vorhanden."));
+      }
+    }
+    databases.databases[id] = new Database(key, name);
+    fs.writeFileSync("databases.json", JSON.stringify(databases, null, 2));
+    console_log("Database erstellt", "createDatabase", "warn");
+    return JSON.stringify(new ReturnValue("feedback", "Database erstellt"));
+  }
+  catch(err){
+    console_log(err,"createDatabase", "warn", ws._socket.remoteAddress);
+    return JSON.stringify(new ReturnValue("error", err, "createDatabase Error"));
+  }
+}
+
 class ReturnValue{
   constructor(type, value1, value2){
     this.type = type;
@@ -119,15 +145,17 @@ class ReturnValue{
       this.name = value1.name;
       this.key = value1.key;
       this.data = value1.data;
+    }else if(type == "feedback"){
+      this.message = value1;
     }
   }
 }
 
 class Database{
-  constructor(id, key, name){
+  constructor(key, name){
     this.name = name;
     this.key = key;
-    this.id = id;
+    this.data = {};
   }
 }
 

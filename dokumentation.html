@@ -21,6 +21,12 @@
             <h1>Database Dokumentation</h1>
         </header>
 
+        <ul class="topNavigation">
+            <li><a href="#Befehle">Befehle</a></li>
+            <li><a href="#Kommunikation">Eingabe und Kommunikation</a></li>
+            <li><a href="#Sicherheit">Sicherheit</a></li>
+        </ul>
+
         <content>
             <section id="Befehle" class="group">
                 <h3>Befehle</h3>
@@ -34,13 +40,13 @@
                             <ul class="ParamList">
                                 <li><span class="code">key</span>: Es handelt sich um den Zugangsschlüssel zur DB.</li>
                                 <li><span class="code">database_name</span>: Ist die <u>Id</u> des DB.</li>
+                                <li>Sicherheitslevel 2</li>
                             </ul>
                         </div>
                         <div class="subpanel red">
                             <h5>Error Handling</h5>
                         </div>
                     </div>
-                    
                 </div>
                 <div class="panel">
                     <h4>createDatabase</h4>
@@ -51,12 +57,30 @@
                                 <li><span class="code">id</span>: Eine eindeutige Id. Sie ist einzigartig und wird verwendet um eine Database eindeutig zu Identifizieren. Da die Id einzigartig ist, kann jede Id nur einmal genzt werden.</li>
                                 <li><span class="code">key</span>: Legt den Zugangsschlüssel zur Database fest.</li>
                                 <li><span class="code">database_name</span>: Legt den Anzeigename der Database fest.</li>
+                                <li>Sicherheitslevel 3</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h4>changeDatabase</h4>
+                    <p>Mit diesem Befehl, können die Daten einer Database geziehlt geändert, oder neu erstellt werden.</p>
+                    <div class="subpanelContainer">
+                        <div class="subpanel green">
+                            <h5>Benötigte Parameter:</h5>
+                            <ul class="ParamList">
+                                <li><span class="code">key</span>: Es handelt sich um den Zugangsschlüssel zur DB.</li>
+                                <li><span class="code">database_name</span>: Ist die <u>Id</u> des DB.</li>
+                                <li><span class="code">dataKey</span>: Ist der Schlüssel des Datenpunktes in der DB, der geändert/ergänzt werden soll.</li>
+                                <li><span class="code">data</span>: Die neuen Daten selbst.</li>
+                                <li>Sicherheitslevel 2</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </section>
-            <section class="group">
+
+            <section class="group" id="Kommunikation">
                 <h3>Eingabe und Kommunikation</h3>
                 <p>Hier werden die Regeln erläutert, die für die Kommunikation mit dem Server gelten.</p>
                 <div class="panel">
@@ -67,6 +91,36 @@
                             <h5></h5>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <section class="group" id="Sicherheit">
+                <h3>Sicherheit</h3>
+                <p>Es gibt einige Sicherheitsfunktionen, um den Zugriff und die Manipulation von Daten zu Kontrollieren.</p>
+                <div class="panel">
+                    <h4>Sicherheitslevel</h4>
+                    <p>Es gibt 4 Sicherheitslevel. Sie ermöglichen in aufsteigender Reihenfolge den Zugang zu immer mehr Funktionen.</p>
+                    <div class="subpanelContainer">
+                        <div class="subpanel">
+                            <ul class="ParamList">
+                                <li><span class="code">1</span>: Standardzugriff</li>
+                                <li><span class="code">2</span>: vertrauenswürdiger Zugriff</li>
+                                <li><span class="code">3</span>: Operator und Techniker Zugriff</li>
+                                <li><span class="code">4</span>: Administratorrechte, alles ist erlaubt.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p>Um Adminrechte zu erhalten muss über den <span class="code">accessKey</span> Parameter ein Code übermittelt werden.</p>
+                    <p>Commands können aktuell ab Sicherheitsstufe 2 aufgerufen werden.</p>
+                </div>
+                <div class="panel">
+                    <h4>Database Key</h4>
+                    <p>Jede Database hat einen eigenen Zugangsschlüssel. 
+                        Dieser Zugangsschlüssel wird jedes mal benötigt, wenn auf die Datenbank in irgendeiner Weise zugegriffen werden soll.
+                        Ohne Schlüssel ist der Zugang zur Database also nicht möglich.
+                        Beim erstellen einer neuen Database muss der Zugangschlüssel festgelegt werden.
+                        Der Zugangsschlüssel muss als <span class="code">key</span> Parameter übermittelt werden.
+                    </p>
                 </div>
             </section>
         </content>

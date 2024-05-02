@@ -60,6 +60,7 @@ websocket = {
             console.log(message);
             console.log(JSON.parse(message.data));
             document.getElementById("dataDisplay").innerHTML = message.data;
+            return message.data;
         }
     },
     prepareMessage(message){//Kann verwendet werden, um eine Nachricht vor dem Senden vorzubereiten.

@@ -1,0 +1,7 @@
+{
+    "standardSecurityLevel":2,
+    "adminKey":"1234",
+    "adminSecurityLevel": 4,
+    "operatorKey":"12345",
+    "operatorSecurityLevel": 3
+}

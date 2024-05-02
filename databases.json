@@ -3,7 +3,9 @@
     "db1": {
       "name": "testdb1",
       "key": "1234",
-      "data": {}
+      "data": {
+        "test": "Testdata"
+      }
     },
     "db2": {
       "key": "123",

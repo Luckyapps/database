@@ -35,7 +35,18 @@ function onSocketConnect(ws) {
   ws.on('message', function(message) {
     if(bouncer(ws, message) == true){ //security check
         console_log(message, "onSocketConnect", undefined, ws._socket.remoteAddress);
-      ws.send(main_script(message, ws));
+        try{
+          ws.send(main_script(message, ws));
+        }
+        catch(err){
+          console_log("Schwerwiegender Fehler: Nachricht konnte nicht gesendet werden", "Websocket | OnSocketConnect | ws.on message | Sendeeinheit", "critical", ws._socket.remoteAddress);
+          try{
+            ws.send(new ReturnValue("error", err, "Ein schwerwiegender Feher ist aufgetreten, es konnte keine Korrekte Antwort verschickt werden.").asString());
+          }
+          catch{
+            console_log("Schwerwiegender Fehler: Fehlerrückmeldung konnte nicht gesendet werden. Es liegt ein Problem mit der Socketfunktionalität vor.", "Websocket | OnSocketConnect | ws.on message | Sendeeinheit | ABSICHERUNGSFEHLERMELDER", "critical", ws._socket.remoteAddress);
+          }
+        }
     } 
   });
 
@@ -45,6 +56,7 @@ function onSocketConnect(ws) {
   });
 }
 
+//--------------------Main Code----------------------
 
 function main_script(message, ws){
     try{
@@ -54,40 +66,99 @@ function main_script(message, ws){
     }
     catch(err){ //Inputformat ungültig
       console_log(err,"main_script", "warn", ws._socket.remoteAddress);
-      return JSON.stringify(new ReturnValue("error", err, "Input Error"));
+      return new ReturnValue("error", err, "Input Error").asString();
     }
 }
 
-function inputHandler(input, ws){
+var userSecurityLevel = 0;
+
+function inputHandler(input, ws){ //Einstellungen laden und Sicherheitsfilter 1
   try{
-    if(input.command){
-      if(input.command == "openDatabase"){
-        if(input.key && input.database_name){
-          return accessDatabase(input, ws);
-        }else{
-          return JSON.stringify(new ReturnValue("error", null, "Nicht genug Argumente angegeben"))
-        }
-      }else if(input.command == "createDatabase"){
-        if(input.database_name && input.key && input.id){
-          return createDatabase(input.id, input.key, input.name, input, ws);
-        }else{
-          return JSON.stringify(new ReturnValue("error", null, "Nicht genug Argumente angegeben"))
-        }
+    try{
+      var settings = JSON.parse(fs.readFileSync("settings.json"));
+    }
+    catch(err){
+      console_log("Settings konnten nicht abgerufen werden. Der Vorgang wurde aus Sicherheitsgründen abgebrochen.", "inputHandler", "critical");
+      return new ReturnValue("error", err, "Eingabe konnte aufgrund von Sicherheitsproblemen nicht verarbeitet werden.").asString();
+    }
+    userSecurityLevel = accessHandler(input,ws, settings);
+    console_log("Sicherheitslevel: "+ userSecurityLevel, "inputHandler", undefined, ws._socket.remoteAddress);
+    //Eingabeparametersicherung
+    if(userSecurityLevel >= 1){ //Sicherheitslevel 1: Standardzugriff
+    }
+    if(userSecurityLevel >= 2){ //Sicherheitslevel 2: vertrauenswürdiger Zugriff
+      if(input.command){
+        return commandHandler(input, ws);
       }else{
-        console_log("Ungültiger Befehl: "+ input.command,"inputHandler", "warn", ws._socket.remoteAddress);
-        return JSON.stringify(new ReturnValue("error", undefined, "InputHandler Error: "+"Ungültiger Befehl: "+ input.command,"inputHandler"));
+        console_log("Kein Command | Sicherheitslevel: "+ userSecurityLevel, "inputHandler", "warn", ws._socket.remoteAddress);
+        return new ReturnValue("error", undefined, "Ungültige Aktion").asString();
       }
-    }else{
-      return JSON.stringify(input);
+    }
+    if(userSecurityLevel >= 3){ //Sicherheitslevel 3: Operator und Techniker Zugriff
+    }
+    if(userSecurityLevel >= 4){ //Sicherheitslevel 4: Administratorrechte, alles ist erlaubt.
+    }
+    //Optioal: Antwort bei zu niedrigem Sicherheitslevel für alle Aktionen
+    if(userSecurityLevel < 2){
+      return new ReturnValue("error", undefined, "Sicherheitslevel zu gering für Funktionsverarbeitungen.").asString();
     }
   }
   catch(err){
     console_log(err,"inputHandler", "warn", ws._socket.remoteAddress);
-    return JSON.stringify(new ReturnValue("error", err, "InputHandler Error"));
+    return new ReturnValue("error", err, "InputHandler Error").asString();
   }
 }
 
-function accessDatabase(input, ws){
+function accessHandler(input, ws, settings){ //Ermitteln des Sicherheitslevels
+  try{
+    if(input.accessKey){
+      if(input.accessKey == settings.adminKey){
+        return settings.adminSecurityLevel;
+      }else if(input.accessKey == settings.operatorKey){
+        return settings.operatorSecurityLevel;
+      }else{
+        return settings.standardSecurityLevel;
+      }
+    }else{
+      return settings.standardSecurityLevel;
+    }
+  }
+  catch{
+    console_log("Fehler im accessHandler", "accessHandler", "critical", ws._socket.remoteAddress)
+    return 0;
+  }
+}
+
+function commandHandler(input, ws){ //Commands und Freigaben
+  try{
+    if(input.command == "openDatabase" && userSecurityLevel >= 2){ //openDatabase
+      if(input.key && input.database_name){
+        return accessDatabase(input, ws);
+      }else{
+        return new ReturnValue("error", null, "Nicht genug Argumente angegeben").asString();
+      }
+    }else if(input.command == "createDatabase" && userSecurityLevel >= 3){ //createDatabase
+      if(input.database_name && input.key && input.id){
+        return createDatabase(input.id, input.key, input.name, input, ws);
+      }else{
+        return new ReturnValue("error", null, "Nicht genug Argumente angegeben").asString();
+      }
+    }else if(input.command == "test"){ //test
+      return new ReturnValue("data","Infotext").asString();
+    }else if(input.command == "changeDatabase" && userSecurityLevel >= 2){ //changeDatabase
+      return manipulateDatabase(input, ws);
+    }else{
+      console_log("Ungültiger Befehl: "+ input.command +" | Oder unzureichende Sicherheitsstufe: "+ userSecurityLevel,"commandHandler", "warn", ws._socket.remoteAddress);
+      return new ReturnValue("error", undefined, "commandHandler Error: "+"Ungültiger Befehl: "+ input.command +" | Oder unzureichende Sicherheitsstufe: "+ userSecurityLevel,"commandHandler").asString();
+    }
+  }
+  catch(err){
+    console_log(err,"commandHandler", "warn", ws._socket.remoteAddress);
+    return new ReturnValue("error", err, "commandHandler Error").asString();
+  }
+}
+
+function accessDatabase(input, ws){ //Daten aus Database auslesen
   try{
     var database = JSON.parse(fs.readFileSync('databases.json')).databases;
     if(input.key == database[input.database_name].key){
@@ -95,17 +166,37 @@ function accessDatabase(input, ws){
       var returning = database[input.database_name];
     }else{
       console_log("User hat erfolglos versucht die Database mit id: "+ input.database_name +" und key: "+ input.key +" zu öffnen","accessDatabase", "warn", ws._socket.remoteAddress);
-      return JSON.stringify(new ReturnValue("error", null, "Key oder id Falsch"));
+      return new ReturnValue("error", null, "Key oder id Falsch").asString();
     }
-    return JSON.stringify(new ReturnValue("database", returning));
+    return new ReturnValue("database", returning).asString();
   }
   catch(err){
     console_log(err,"accessDatabase", "warn", ws._socket.remoteAddress);
-    return JSON.stringify(new ReturnValue("error", err, "accessDatabase Error"));
+    return new ReturnValue("error", err, "accessDatabase Error").asString();
   }
 }
 
-function createDatabase(id, key, name, input, ws){
+function manipulateDatabase(input, ws){ //Daten einer Database ändern
+  /*console_log("User hat versucht manipulateDatabase auszuführen. Die Funktion ist noch nicht verfügbar.", "maniputlateDatabase", "warn", ws._socket.remoteAddress);
+  return new ReturnValue("error", undefined, "manipulateDatabase ist noch nicht verfügbar.").asString();*/
+  try{
+    var source = JSON.parse(fs.readFileSync("databases.json"));
+    if(input.key == source.databases[input.database_name].key){
+      source.databases[input.database_name].data[input.dataKey] = input.data;
+      fs.writeFileSync("databases.json", JSON.stringify(source, null, 2));
+      return new ReturnValue("database", source.databases[input.database_name]).asString();
+    }else{
+      console_log("User hat erfolglos versucht die Database mit id: "+ input.database_name +" und key: "+ input.key +" zu Manipulieren","manipulateDatabase", "warn", ws._socket.remoteAddress);
+      return new ReturnValue("error", null, "Key oder id Falsch").asString();
+    }
+  }
+  catch(err){
+    console_log(err,"manipulateDatabase", "warn", ws._socket.remoteAddress);
+    return new ReturnValue("error", err, "manipulateDatabase Error").asString();
+  }
+}
+
+function createDatabase(id, key, name, input, ws){ //neue Databse erstellen
   try{
     var databases = JSON.parse(fs.readFileSync("databases.json"));
     for(i=0;i<Object.keys(databases.databases).length;i++){
@@ -117,11 +208,11 @@ function createDatabase(id, key, name, input, ws){
     databases.databases[id] = new Database(key, name);
     fs.writeFileSync("databases.json", JSON.stringify(databases, null, 2));
     console_log("Database erstellt", "createDatabase", "warn");
-    return JSON.stringify(new ReturnValue("feedback", "Database erstellt"));
+    return new ReturnValue("feedback", "Database erstellt").asString();
   }
   catch(err){
     console_log(err,"createDatabase", "warn", ws._socket.remoteAddress);
-    return JSON.stringify(new ReturnValue("error", err, "createDatabase Error"));
+    return new ReturnValue("error", err, "createDatabase Error").asString();
   }
 }
 
@@ -148,6 +239,9 @@ class ReturnValue{
     }else if(type == "feedback"){
       this.message = value1;
     }
+  }
+  asString(){
+    return JSON.stringify(this);
   }
 }
 
